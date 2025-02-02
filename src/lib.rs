@@ -63,7 +63,8 @@ impl IAngle {
 
     /// Checks whether or not this angle lies between `a` and `b`
     ///
-    /// More specifically, imagine rotating counter-clockwise from `a` until reaching `b`. Iff `self` is crossed at any point, return `true`
+    /// More specifically, imagine rotating counter-clockwise from `a` until reaching `b`.
+    /// Iff the line `self`, extending in both directions, is crossed at any point, return `true`
     fn within_pair_bidirectional(self, a: IAngle, b: IAngle, open: bool) -> bool {
         // First, rotate all angles so `a` lies in quadrant 1
         let times_to_rotate = a.quadrant() - 1;
