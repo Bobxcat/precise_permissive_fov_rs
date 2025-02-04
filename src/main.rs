@@ -1,4 +1,4 @@
-use glam::UVec2;
+use glam::{IVec2, UVec2};
 use precise_permissive_fov::*;
 use rand::random_bool;
 
@@ -19,12 +19,29 @@ fn format_grid<T: Into<String>>(
 }
 
 fn run_with_map<const W: usize, const H: usize>(map: [[PPFOVTile; W]; H]) {
-    let visible = build_view_grid(&map);
+    let visible = build_fov_set(
+        IVec2::ZERO,
+        W as i32,
+        H as i32,
+        (H + W + 1000) as i32,
+        |v| {
+            UVec2::try_from(v)
+                .ok()
+                .and_then(|v| Some(map.get(v.y as usize)?.get(v.x as usize)?).copied())
+                .unwrap_or(PPFOVTile::Obstacle)
+        },
+    );
+
+    // Only keep the non-negative visible ones
     let visible_sorted = {
-        let mut v = visible.iter().copied().collect::<Vec<_>>();
+        let mut v = visible
+            .iter()
+            .filter_map(|v| (v.x >= 0 || v.y >= 0).then(|| (v.x as usize, v.y as usize)))
+            .collect::<Vec<_>>();
         v.sort();
         v
     };
+
     let map_str = format_grid(W, H, |UVec2 { x, y }| {
         if x == 0 && y == 0 {
             return '@';
@@ -35,15 +52,20 @@ fn run_with_map<const W: usize, const H: usize>(map: [[PPFOVTile; W]; H]) {
             PPFOVTile::Obstacle => '#',
         }
     });
-    let visible_str = format_grid(W, H, |UVec2 { x, y }| match visible.contains(&(x, y)) {
-        true => 'O',
-        false => 'X',
+    let visible_str = format_grid(W, H, |UVec2 { x, y }| {
+        match visible.contains(&IVec2::new(x as i32, y as i32)) {
+            true => 'O',
+            false => 'X',
+        }
     });
     let vismap_str = format_grid(W, H, |UVec2 { x, y }| {
         if x == 0 && y == 0 {
             return "@";
         }
-        match (visible.contains(&(x, y)), map[y as usize][x as usize]) {
+        match (
+            visible.contains(&IVec2::new(x as i32, y as i32)),
+            map[y as usize][x as usize],
+        ) {
             (true, PPFOVTile::Empty) => ".",
             (true, PPFOVTile::Obstacle) => "#",
             (false, PPFOVTile::Empty) => "░",
@@ -66,7 +88,8 @@ fn run_rand<const W: usize, const H: usize>() {
 }
 
 fn main() {
-    // run_rand::<15, 7>();
+    run_rand::<15, 7>();
+    return;
     let c = [
         [
             PPFOVTile::Empty,
@@ -111,7 +134,8 @@ fn main() {
             PPFOVTile::Empty,
         ],
     ];
-    run_with_map(c);
+    // run_with_map(c);
+    // run_with_map_py(c);
     let a = [
         [
             PPFOVTile::Empty,
