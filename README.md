@@ -5,4 +5,4 @@ This is an implementation of the following algorithm, written in Rust:
 # Implementation
 This crate is a line-by-line copy of a [python implementation of PPFoV](https://www.roguebasin.com/index.php/Permissive_Field_of_View_in_Python), with some modifications
 
-This crate has not been thouroughly tested, but it _should_ work
+This crate has not been thoroughly tested, but it _should_ work
